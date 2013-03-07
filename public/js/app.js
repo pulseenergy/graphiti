@@ -102,7 +102,12 @@ var app = Sammy('body', function() {
           key, $form = $('#graph-options form');
       for (key in opts) {
         if (opts[key] != '') {
-          $form.find('[name="options[' + key + ']"]').val(opts[key]);
+          var formInput = $form.find('[name="options[' + key + ']"]');
+          if (formInput.is(':checkbox')) {
+            formInput.prop('checked', opts[key]);
+          } else {
+            formInput.val(opts[key]);
+          }
         }
       }
     },
