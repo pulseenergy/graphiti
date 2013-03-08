@@ -24,7 +24,7 @@ namespace :graphiti do
 
   desc 'Rebuild Metrics List'
   task :metrics do
-    list = Metric.all true
+    list = Metric.refresh
     puts "Got #{list.length} metrics"
   end
 

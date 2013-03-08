@@ -23,6 +23,7 @@ default_options:
 default_metrics:
   - "stats.timers.production.rails.controller.total.mean"
 metric_prefix: "stats"
+index_by_keywords: true
 # Configure a service for snapshoting graphs. Current options are
 # s3 (amazon s3) and fs (filesystem)
 snapshots: 

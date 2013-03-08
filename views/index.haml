@@ -175,9 +175,15 @@
           #metrics-menu
             %input.search{type: 'search', name: 'metrics-filter', placeholder: 'Search'}
           #metrics-list
-            .empty No metrics found. Search for metrics above.
+            %ul.suggestions{style: 'display:none;'}
+              %li{style: 'display:none;'}
+                %a{rel: 'keyword_search'}
+                  %span Suggested search:&nbsp;
+                  %strong.keyword &nbsp;
+                  %span.search{style: 'display:none;'} &nbsp;
             .loading{style: 'display:none;'} ... Loading ...
-            %ul{style: 'display:none;'}
+            .empty No metrics found. Search for metrics above.
+            %ul.results{style: 'display:none;'}
               %li{style: 'display:none;'}
                 %a{rel: 'add'} Add
                 %a{rel: 'replace'} Replace

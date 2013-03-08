@@ -130,55 +130,116 @@ var app = Sammy('body', function() {
         .appendTo($list).show();
       }
     },
+    buildSuggestionsList: function($list, prefix, keywords) {
+      var $li = $list.find('li:first').clone();
+      $list.html('');
+      var i = 0, l = keywords.length;
+      for (; i < l; i++) {
+        var full_search = (prefix.length > 0) ? prefix + "." + keywords[i] : keywords[i];
+        $li.clone()
+        .attr('id', "suggestion_" + i)
+        .find('span.search').text(full_search).end()
+        .find('strong.keyword').text(keywords[i]).end()
+        .appendTo($list).show();
+      }
+    },
     bindMetricsList: function() {
       var ctx = this;
-      var $list = $('#metrics-list ul')
+      var $results_list = $('#metrics-list ul.results');
+      var $suggestions_list = $('#metrics-list ul.suggestions');
       var throttle;
-      $('#metrics-menu')
-        .find('input[type="search"]').live('keyup', function() {
-          var val = $(this).val();
-          if (throttle) {
-            clearTimeout(throttle);
+      var metricsMenu = $('#metrics-menu').find('input[type="search"]');
+      metricsMenu.live('keyup', function() {
+        var val = $(this).val();
+        if (throttle) {
+          clearTimeout(throttle);
+        }
+        throttle = setTimeout(function() {
+          ctx.searchMetricsList(val);
+        }, 200);
+      }).live('keypress', function(event) {
+        var keyCode = event.keyCode;
+        if (keyCode == 9) { //TAB pressed
+          event.preventDefault();
+          if ($suggestions_list.is(":visible")) {
+            $suggestions_list.find("li:first a").click();
           }
-          throttle = setTimeout(function() {
-            ctx.searchMetricsList(val);
-          }, 200);
-        });
-      $list.delegate('li a', 'click', function(e) {
+        }
+      });
+      $results_list.delegate('li a', 'click', function(e) {
         e.preventDefault();
         var action = $(this).attr('rel'),
             metric = $(this).siblings('strong').text();
         Sammy.log('clicked', action, metric);
         ctx[action + "GraphMetric"](metric);
       }).addClass('.bound');
+      
+      $suggestions_list.delegate('li a', 'click', function(e) {
+        e.preventDefault();
+        var suggestion = $(this).find('span.search').text();
+        Sammy.log('search suggestion clicked', suggestion);
+        ctx.setSearch(suggestion + '.');
+      }).addClass('.bound');
     },
-
+    metricRequestPending: 0,
+    keywordRequestPending: 0,
     searchMetricsList: function(search) {
       var ctx = this;
-      var $list = $('#metrics-list ul');
+      var $results_list = $('#metrics-list ul.results')
+      var $suggestions_list = $('#metrics-list ul.suggestions')
       var $loading = $('#metrics-list .loading');
       var $empty = $('#metrics-list .empty');
-      var url = '/metrics.js';
-      url += '?q=' + search;
-      if (ctx.app.searching) return;
-      if (search.length > 4) {
-        ctx.app.searching = true;
+
+      if (search.length >= 4) {
+        var url = '/metrics.js';
+        url += '?q=' + search;
         $empty.hide();
         $loading.show();
-        return this.load(url).then(function(metrics) {
-          var metrics = metrics.metrics;
-          $loading.hide();
-          if (metrics.length > 0) {
-            $list.show();
-            ctx.buildMetricsList($list, metrics);
-          } else {
-            $empty.show();
+        var localMetricRequestPending = ++ctx.metricRequestPending;
+        this.load(url).then(function(metrics) {
+          if (localMetricRequestPending == ctx.metricRequestPending) {
+            var metrics = metrics.metrics;
+            $loading.hide();
+            if (metrics.length > 0) {
+              $results_list.show();
+              ctx.buildMetricsList($results_list, metrics);
+            } else {
+              $results_list.hide();
+              $empty.show();
+            }
           }
-          ctx.app.searching = false;
         });
+      }
+            
+      if (search.length >= 2) {
+        var keywords=search.split(/[\. ]/);
+        var prefix=""
+        if (keywords.length > 1) {
+          prefix = keywords.splice(0,keywords.length-1).join(".")
+        }
+        var last_keyword = keywords[keywords.length-1]
+        if (last_keyword.length >= 2) {
+          var url = '/keywords.js';
+          url += '?q=' + last_keyword + '&max=5';
+          var localKeywordRequestPending = ++ctx.keywordRequestPending;
+          this.load(url).then(function(results) {
+            if (localKeywordRequestPending == ctx.keywordRequestPending) {
+              var keywords = results.keywords;
+              if (keywords.length > 0) {
+                $suggestions_list.show();
+                ctx.buildSuggestionsList($suggestions_list, prefix, keywords);
+              } else {
+                $suggestions_list.hide();
+              }
+            }
+          });
+        } else {
+          $suggestions_list.hide();
+        }
       } else {
         $empty.show();
-        $list.hide();
+        $results_list.hide();
+        $suggestions_list.hide();
       }
     },
     addGraphMetric: function(metric) {
@@ -192,6 +253,12 @@ var app = Sammy('body', function() {
       json.targets = [[metric, {}]];
       this.graphPreview(json);
       this.setEditorJSON(json);
+    },
+    setSearch: function(searchString) {
+      var $metricsMenu = $('#metrics-menu').find('input[type="search"]');
+      $metricsMenu.val(searchString);
+      this.searchMetricsList(searchString);
+      $metricsMenu.focus();
     },
     timestamp: function(time) {
       if (typeof time == 'string') {
