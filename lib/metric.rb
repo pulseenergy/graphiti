@@ -19,8 +19,8 @@ class Metric
       end
       
       puts "Indexing metrics by #{search_hash.length} unique keywords"
-      redis.pipelined do
-        search_hash.each_pair do |search_key, metric_matches|
+      search_hash.each_pair do |search_key, metric_matches|
+        redis.pipelined do
           redis.del "metrics:#{search_key}"
           metric_matches.each do |metric|
             redis.rpush "metrics:#{search_key}", metric
