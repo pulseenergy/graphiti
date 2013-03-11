@@ -23,7 +23,7 @@ class Metric
         redis.pipelined do
           redis.del "metrics:#{search_key}"
           metric_matches.each do |metric|
-            redis.rpush "metrics:#{search_key}", metric
+            redis.sadd "metrics:#{search_key}", metric
           end
         end
       end
@@ -43,7 +43,7 @@ class Metric
     match = match.strip
     keywords = redis.keys("metrics:*#{match}*")
     keywords = keywords.map { |key| key.gsub("metrics:", "") }
-    keywords = keywords.sort[0, max]
+    keywords = self.sort_prefer_prefix(keywords, match)[0, max]
   end
 
   def self.find(match, max = 100)
@@ -53,7 +53,7 @@ class Metric
       return find_by_keywords(match, max)
     end
     find_in_big_list(match, max)
-  end
+  end 
 
   private
   
@@ -83,48 +83,28 @@ class Metric
     keywords = match.split(/[ \.,]/).uniq()
     if keywords.length == 0
       matches = all(0, max)
-    elsif keywords.length == 1
-      matches = find_by_keyword(keywords[0], max)
     else
-      batch_size = 10 * max
-      begin
-        matches_by_keyword = []
-        keywords.each do |keyword|
-          matches_by_keyword.push find_by_keyword(keyword, batch_size)
-        end
-        smallest_match = matches_by_keyword.inject() do |smallest, matchset|
-          smallest.length <= matchset.length ? smallest : matchset
-        end
-        
-        if smallest_match.length < batch_size
-          matches = filter(smallest_match, keywords)[0, max]
-          break
-        else
-          matches = matches_by_keyword.reduce(:&)
-        end
-        
-        batch_size = batch_size * 10
-      end while matches.length < max
+      keys = keywords.map { |keyword| "metrics:#{keyword}" }
+      matches = redis.sinter *keys
     end
-    matches[0, max]
+    matches = self.sort_prefer_prefix(matches, match)[0, max]
   end
   
-  def self.filter(candidates, keywords)
-    matches = []
-    candidates.each do |candidate|
-      if keywords & split_into_keywords(candidate) == keywords
-        matches << candidate
-      end
-    end
-    matches
+  def self.sort_prefer_prefix(list, prefix)
+    puts "sorting prefer #{prefix}"
+    list.sort { |a,b| if a.start_with?(prefix) == b.start_with?(prefix) 
+           then
+             a <=> b
+           elsif a.start_with?(prefix)
+             -1
+           else
+            1
+           end
+       }
   end
   
   def self.split_into_keywords(metric)
     metric.split(".").uniq()
-  end
-  
-  def self.find_by_keyword(keyword, max = 1000, start = 0)
-    redis.lrange "metrics:#{keyword}", start, max-1
   end
   
   def self.get_metrics_list(prefix = Graphiti.settings.metric_prefix)

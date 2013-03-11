@@ -60,7 +60,11 @@ class Graphiti < Sinatra::Base
   end
 
   get '/metrics.js' do
-    json :metrics => Metric.find(params[:q])
+    if params[:max]
+      json :metrics => Metric.find(params[:q].to_s, params[:max].to_i)
+    else
+      json :metrics => Metric.find(params[:q].to_s)
+    end
   end
   
   get '/keywords.js' do
