@@ -62,6 +62,23 @@ body.bp {
 #view-controls {
   text-align: right;
 }
+#time-selector {
+  float: left;
+}
+#time-selector button {
+  @include border-radius(4px);
+  color: #666;
+  background: #e5e5e5;
+  cursor: pointer;
+  padding: 2px 4px;
+  border: 1px solid #CCC;
+  font-size: 10px;
+  font-weight: bold;
+}
+#time-selector button.selected {
+  color: #f3f3f3;
+  background: #694800;
+}
 #editor-pane {
   .save {
     @include border-radius(4px);

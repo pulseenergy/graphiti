@@ -299,6 +299,7 @@ var app = Sammy('body', function() {
       }
     },
     loadAndRenderGraphs: function(url) {
+      var ctx = this;
       var $graphs = this.showPane('graphs', ' ');
       this.load(url, {cache: false})
           .then(function(data) {
@@ -314,23 +315,22 @@ var app = Sammy('body', function() {
                 i = 0,
                 l = graphs.length,
                 $graph = $('#templates .graph').clone(),
-                graph, graph_obj;
+                graph;
             if (data.graphs.length == 0) {
               $graphs.append($('#graphs-empty'));
               return true;
             }
             for (; i < l; i++) {
               graph = graphs[i];
-              graph_obj = new Graphiti.Graph(JSON.parse(graph.json));
 
               $graph
               .clone()
               .find('.title').text(graph.title || 'Untitled').end()
               .find('a.edit').attr('href', '/graphs/' + graph.uuid).end()
               .show()
+              .data("graph", graph.json)
               .appendTo($graphs).each(function() {
-                // actually replace the graph image
-                graph_obj.image($(this).find('img'));
+                ctx.drawGraph(graph.json, $(this).find('img'));
                 // add a last class alternatingly to fix the display grid
                 if ((i+1)%2 == 0) {
                   $(this).addClass('last');
@@ -352,6 +352,24 @@ var app = Sammy('body', function() {
               });
             }
           });
+    },
+    drawGraph: function(graph_json, $img_location) {
+      var graph_data = JSON.parse(graph_json);
+      $.extend(true, graph_data, this.getOptionOverrides());
+      graph_obj = new Graphiti.Graph(graph_data);
+      // actually replace the graph image
+      graph_obj.image($img_location);
+    },
+    redrawGraphs: function() {
+      var ctx = this;
+      var $graphs =  $('#graphs-pane');
+      if (!$graphs.is(":visible")) {
+        return;
+      }
+      var graph_obj, graph_data;
+      $graphs.find(".graph").each(function() {
+        ctx.drawGraph($(this).data("graph"), $(this).find('img'));
+      });
     },
     loadAndRenderDashboards: function() {
       var $dashboards = this.showPane('dashboards', '<h2>Dashboards</h2>');
@@ -457,8 +475,27 @@ var app = Sammy('body', function() {
 
     hideSaving: function() {
       this.$button.val(this.original_button_val).removeAttr('disabled');
+    },
+    
+    bindTimeSelector: function() {
+      var ctx = this;
+      $('#time-selector')
+      .delegate('button', 'click', function(e) {
+        var $button = $(this);
+        var value = $button.val();
+        $button.siblings("button").removeClass("selected");
+        $button.addClass("selected");
+        ctx.redrawGraphs();
+      });
+    },
+    
+    getOptionOverrides: function() {
+      var fromTime = $('#time-selector button.selected').val();
+      if (fromTime) {
+        return {"options": {"from": fromTime, "until": ""}};
+      }
+      return {};
     }
-
   });
 
   this.before({only: {verb: 'get'}}, function() {
@@ -624,6 +661,7 @@ var app = Sammy('body', function() {
 
     this.bindEditorPanes();
     this.bindMetricsList();
+    this.bindTimeSelector();
 
     var disableSave = function() {
       if ($(this).val().toString() == '') {
