@@ -9,32 +9,32 @@ class Metric
     metrics = get_metrics_list
     redis.del "metrics"
     puts "Caching #{metrics.length} metrics into redis"
-    
-    if use_index_by_keywords
-      search_hash = {}
-      metrics.each do |metric|
-        split_into_keywords(metric).each do |path_keyword|
-          (search_hash[path_keyword] ||= []) << metric
-        end
-      end
-      
-      puts "Indexing metrics by #{search_hash.length} unique keywords"
-      search_hash.each_pair do |search_key, metric_matches|
-        redis.pipelined do
-          redis.del "metrics:#{search_key}"
-          metric_matches.each do |metric|
-            redis.sadd "metrics:#{search_key}", metric
-          end
-        end
-      end
-  end
-    
+
     redis.pipelined do
-      redis.del "metrics"
-      metrics.each{ |metric| redis.rpush "metrics", metric }
+      metrics.each do |metric|
+        prefix = ""
+        keywords = metric.split(".")
+        for i in 0..keywords.size()-2
+          redis.sadd("metrics:folder:#{prefix}",keywords[i])
+          if prefix != ""
+            prefix << "."
+          end
+          prefix << keywords[i]
+        end
+        redis.sadd("metrics:key:#{prefix}", keywords[-1])
+      end
     end
     
     metrics
+  end
+
+  def self.find_folders(match)
+    File.new("outblah", "w").write("#{match}")
+    redis.smembers("metrics:folder:#{match}").sort()
+  end
+
+  def self.find_metrics(match)
+    redis.smembers("metrics:key:#{match}").sort()
   end
 
   def self.find_keywords(match, max=100)
@@ -123,7 +123,7 @@ class Metric
     else
       puts "Error fetching #{url}. #{response.inspect}"
     end
-    metrics.sort
+    metrics
   end
 
 end

@@ -183,21 +183,11 @@
           %a Metrics
         .edit-body.closed
           #metrics-menu
-            %input.search{type: 'search', name: 'metrics-filter', placeholder: 'Search'}
+            %input.search{type: 'search', name: 'metrics-filter'}
+
           #metrics-list
-            %ul.suggestions{style: 'display:none;'}
-              %li{style: 'display:none;'}
-                %a{rel: 'keyword_search'}
-                  %span Suggested search:&nbsp;
-                  %strong.keyword &nbsp;
-                  %span.search{style: 'display:none;'} &nbsp;
-            .loading{style: 'display:none;'} ... Loading ...
-            .empty No metrics found. Search for metrics above.
-            %ul.results{style: 'display:none;'}
-              %li{style: 'display:none;'}
-                %a{rel: 'add'} Add
-                %a{rel: 'replace'} Replace
-                %strong &nbsp;
+            %ul.search-results
+
         .clear
       .edit-group{'data-group' => 'editor'}
         .edit-head.open

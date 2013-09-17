@@ -12792,130 +12792,103 @@ var app = Sammy('body', function() {
       this.graphPreview(json);
       this.setEditorJSON(json);
     },
-    buildMetricsList: function($list, metrics) {
-      var $li = $list.find('li:first').clone();
-      $list.html('');
-      var i = 0, l = metrics.length;
+    buildMetricsList: function(folders, metrics) {
+      var $search_results = $("#metrics-list ul.search-results");
+      $search_results.html("");
+
+      if ($("#metrics-menu input.search").val() !== "") {
+        $("<li>")
+          .addClass("root")
+          .text("..")
+          .appendTo($search_results);
+      }
+
+      var i = 0, l = folders.length;
+      for (; i < l; i++) {
+        Sammy.log(folders[i]);
+        $("<li>")
+          .addClass("folder")
+          .text(folders[i])
+          .prepend('<img src=http://localhost:5001/images/folder.png>')
+          .hover(
+            function() {
+              $(this).css('font-weight', 'bold');
+            }, function() {
+              $(this).css('font-weight', 'normal');
+            }
+          )
+          .appendTo($search_results);
+      }
+      i = 0, l = metrics.length;
       for (; i < l; i++) {
         Sammy.log(metrics[i]);
-        $li.clone()
-        .attr('id', "metric_list_metric_" + i)
-        .find('strong').text(metrics[i])
-        .end()
-        .appendTo($list).show();
+        $("<li>")
+          .addClass("key")
+          .append($("<a rel='add'>Add</a>"))
+          .append($("<strong>").text(metrics[i]))
+          .prepend('<img src=http://localhost:5001/images/metric.gif>')
+          .appendTo($search_results);
       }
     },
-    buildSuggestionsList: function($list, prefix, keywords) {
-      var $li = $list.find('li:first').clone();
-      $list.html('');
-      var i = 0, l = keywords.length;
-      for (; i < l; i++) {
-        var full_search = (prefix.length > 0) ? prefix + "." + keywords[i] : keywords[i];
-        $li.clone()
-        .attr('id', "suggestion_" + i)
-        .find('span.search').text(full_search).end()
-        .find('strong.keyword').text(keywords[i]).end()
-        .appendTo($list).show();
+    appendFolderToSearchKey: function(folder_name) {
+      var $search = $("#metrics-menu input.search");
+      if ($search.val() !== "") {
+        $search.val($search.val() + ".");
+      }
+      $search.val($search.val() + folder_name);
+    },
+    removeFolderFromSearchKey: function() {
+      var $search = $("#metrics-menu input.search");
+      if ($search.val() !== "") {
+        $search.val($search.val().replace(/\.?\w*$/, ""));
+      } else {
+        $search.val("");
       }
     },
     bindMetricsList: function() {
       var ctx = this;
-      var $results_list = $('#metrics-list ul.results');
-      var $suggestions_list = $('#metrics-list ul.suggestions');
-      var throttle;
-      var metricsMenu = $('#metrics-menu').find('input[type="search"]');
-      metricsMenu.live('keyup', function() {
-        var val = $(this).val();
-        if (throttle) {
-          clearTimeout(throttle);
-        }
-        throttle = setTimeout(function() {
-          ctx.searchMetricsList(val);
-        }, 200);
-      }).live('keypress', function(event) {
-        var keyCode = event.keyCode;
-        if (keyCode == 9) { //TAB pressed
-          event.preventDefault();
-          if ($suggestions_list.is(":visible")) {
-            $suggestions_list.find("li:first a").click();
-          }
-        }
-      });
-      $results_list.delegate('li a', 'click', function(e) {
+      var $results_list = $('#metrics-list ul.search-results');
+      var $metrics_menu = $("#metrics-menu input.search");
+
+      $results_list.delegate('li.root', 'click', function(e) {
         e.preventDefault();
-        var action = $(this).attr('rel'),
-            metric = $(this).siblings('strong').text();
+        ctx.removeFolderFromSearchKey();
+        ctx.searchFolderAndKeyList($metrics_menu.val());
+      }).addClass('.bound');
+      $results_list.delegate('li.folder', 'click', function(e) {
+        e.preventDefault();
+        ctx.appendFolderToSearchKey($(this).text());
+        ctx.searchFolderAndKeyList($metrics_menu.val());
+      }).addClass('.bound');
+      $results_list.delegate('li.key', 'click', function(e) {
+        e.preventDefault();
+        var search_prefix = $metrics_menu.val();
+        var action = $(this).find("a").attr('rel'),
+            metric = search_prefix + "." + $(this).find('strong').text();
         Sammy.log('clicked', action, metric);
         ctx[action + "GraphMetric"](metric);
       }).addClass('.bound');
-      
-      $suggestions_list.delegate('li a', 'click', function(e) {
-        e.preventDefault();
-        var suggestion = $(this).find('span.search').text();
-        Sammy.log('search suggestion clicked', suggestion);
-        ctx.setSearch(suggestion + '.');
-      }).addClass('.bound');
-    },
-    metricRequestPending: 0,
-    keywordRequestPending: 0,
-    searchMetricsList: function(search) {
-      var ctx = this;
-      var $results_list = $('#metrics-list ul.results')
-      var $suggestions_list = $('#metrics-list ul.suggestions')
-      var $loading = $('#metrics-list .loading');
-      var $empty = $('#metrics-list .empty');
 
-      if (search.length >= 4) {
-        var url = '/metrics.js';
-        url += '?q=' + search;
-        $empty.hide();
-        $loading.show();
-        var localMetricRequestPending = ++ctx.metricRequestPending;
-        this.load(url).then(function(metrics) {
-          if (localMetricRequestPending == ctx.metricRequestPending) {
-            var metrics = metrics.metrics;
-            $loading.hide();
-            if (metrics.length > 0) {
-              $results_list.show();
-              ctx.buildMetricsList($results_list, metrics);
-            } else {
-              $results_list.hide();
-              $empty.show();
-            }
-          }
-        });
+      $metrics_menu.change(function () {
+        ctx.searchFolderAndKeyList($metrics_menu.val());
+      });
+
+      if ($metrics_menu.val() == "") {
+        ctx.searchFolderAndKeyList("");
       }
-            
-      if (search.length >= 2) {
-        var keywords=search.split(/[\. ]/);
-        var prefix=""
-        if (keywords.length > 1) {
-          prefix = keywords.splice(0,keywords.length-1).join(".")
+    },
+    keywordRequestPending: 0,
+    searchFolderAndKeyList: function(search) {
+      var ctx = this;
+      var url = '/keywords.js';
+      var localKeywordRequestPending = ++ctx.keywordRequestPending;
+      this.load(url, {cache: false, data: {q: search}}).then(function(results) {
+        if (localKeywordRequestPending == ctx.keywordRequestPending) {
+          var folders = results["folders"];
+          var metrics = results["metrics"];
+          ctx.buildMetricsList(folders, metrics);
         }
-        var last_keyword = keywords[keywords.length-1]
-        if (last_keyword.length >= 2) {
-          var url = '/keywords.js';
-          url += '?q=' + last_keyword + '&max=5';
-          var localKeywordRequestPending = ++ctx.keywordRequestPending;
-          this.load(url).then(function(results) {
-            if (localKeywordRequestPending == ctx.keywordRequestPending) {
-              var keywords = results.keywords;
-              if (keywords.length > 0) {
-                $suggestions_list.show();
-                ctx.buildSuggestionsList($suggestions_list, prefix, keywords);
-              } else {
-                $suggestions_list.hide();
-              }
-            }
-          });
-        } else {
-          $suggestions_list.hide();
-        }
-      } else {
-        $empty.show();
-        $results_list.hide();
-        $suggestions_list.hide();
-      }
+      });
     },
     addGraphMetric: function(metric) {
       var json = this.getEditorJSON();
@@ -12928,12 +12901,6 @@ var app = Sammy('body', function() {
       json.targets = [[metric, {}]];
       this.graphPreview(json);
       this.setEditorJSON(json);
-    },
-    setSearch: function(searchString) {
-      var $metricsMenu = $('#metrics-menu').find('input[type="search"]');
-      $metricsMenu.val(searchString);
-      this.searchMetricsList(searchString);
-      $metricsMenu.focus();
     },
     timestamp: function(time) {
       if (typeof time == 'string') {

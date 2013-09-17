@@ -59,20 +59,10 @@ class Graphiti < Sinatra::Base
     json Graph.find(params[:uuid])
   end
 
-  get '/metrics.js' do
-    if params[:max]
-      json :metrics => Metric.find(params[:q].to_s, params[:max].to_i)
-    else
-      json :metrics => Metric.find(params[:q].to_s)
-    end
-  end
-  
   get '/keywords.js' do
-    if params[:max]
-      json :keywords => Metric.find_keywords(params[:q].to_s, params[:max].to_i)
-    else
-      json :keywords => Metric.find_keywords(params[:q].to_s)
-    end
+    json ({ :folders => Metric.find_folders(params[:q].to_s),
+            :metrics => Metric.find_metrics(params[:q].to_s)
+          })
   end
 
   get '/graphs.js' do
