@@ -1,5 +1,5 @@
 # A sample Gemfile
-source :rubygems
+source 'https://rubygems.org'
 
 gem 'rake'
 gem 'rack', '1.3.5'
@@ -14,6 +14,8 @@ gem 'haml'
 gem 'typhoeus'
 gem 'yajl-ruby'
 gem 'pony'
+gem 'nokogiri'
+gem 'rspec', :require => 'spec'
 
 group :test do
   gem 'minitest', :require => false
