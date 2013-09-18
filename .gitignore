@@ -2,6 +2,7 @@
 *.swp
 .sass-cache*
 .DS_Store
+config/unicorn.rb
 config/settings.yml
 config/amazon_s3.yml
 .bundle/config
