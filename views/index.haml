@@ -250,6 +250,7 @@
   :javascript
     Graphiti = window.Graphiti || {};
     Graphiti.graphite_base_url = "#{settings.graphite_base_url}";
+    Graphiti.graphiti_base_url = "#{settings.graphiti_base_url}";
     Graphiti.defaultGraph = #{Yajl::Encoder.encode(default_graph)};
 
   - if Graphiti.production?

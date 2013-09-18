@@ -128,13 +128,16 @@ var app = Sammy('body', function() {
           .appendTo($search_results);
       }
 
+      var folderUrl = Graphiti.graphiti_base_url + jscolor.getDir() + "folder.png";
+      var metricUrl = Graphiti.graphiti_base_url + jscolor.getDir() + "metric.gif";
+
       var i = 0, l = folders.length;
       for (; i < l; i++) {
         Sammy.log(folders[i]);
         $("<li>")
           .addClass("folder")
           .text(folders[i])
-          .prepend('<img src=http://localhost:5001/images/folder.png>')
+          .prepend('<img src=' + folderUrl + '>')
           .hover(
             function() {
               $(this).css('font-weight', 'bold');
@@ -151,7 +154,7 @@ var app = Sammy('body', function() {
           .addClass("key")
           .append($("<a rel='add'>Add</a>"))
           .append($("<strong>").text(metrics[i]))
-          .prepend('<img src=http://localhost:5001/images/metric.gif>')
+          .prepend('<img src=' + metricUrl + '>')
           .appendTo($search_results);
       }
     },

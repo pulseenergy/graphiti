@@ -29,7 +29,6 @@ class Metric
   end
 
   def self.find_folders(match)
-    File.new("outblah", "w").write("#{match}")
     redis.smembers("metrics:folder:#{match}").sort()
   end
 
