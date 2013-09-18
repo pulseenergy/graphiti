@@ -12764,8 +12764,14 @@ var app = Sammy('body', function() {
     },
     graphPreview: function(options) {
       // get width/height from img
+      var ctx = this;
+      var $preview =  $('#editor-pane');
+      if (!$preview.is(":visible")) {
+        return;
+      }
       this.session('lastPreview', options, function() {
         var $img = $("#graph-preview img"), $url = $('#graph-url input');
+        $.extend(true, options, ctx.getOptionOverrides());
         var graph = new Graphiti.Graph(options);
         graph.image($img);
         $url.val(graph.buildURL());
@@ -12896,12 +12902,6 @@ var app = Sammy('body', function() {
     addGraphMetric: function(metric) {
       var json = this.getEditorJSON();
       json.targets.push([metric, {}]);
-      this.graphPreview(json);
-      this.setEditorJSON(json);
-    },
-    replaceGraphMetric: function(metric) {
-      var json = this.getEditorJSON();
-      json.targets = [[metric, {}]];
       this.graphPreview(json);
       this.setEditorJSON(json);
     },
@@ -13127,10 +13127,10 @@ var app = Sammy('body', function() {
       $('#time-selector')
       .delegate('button', 'click', function(e) {
         var $button = $(this);
-        var value = $button.val();
         $button.siblings("button").removeClass("selected");
         $button.addClass("selected");
         ctx.redrawGraphs();
+        ctx.graphPreview(ctx.getEditorJSON());
       });
     },
     
