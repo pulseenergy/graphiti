@@ -12805,8 +12805,6 @@ var app = Sammy('body', function() {
 
       var folderUrl = Graphiti.graphiti_base_url + jscolor.getDir() + "folder.png";
       var metricUrl = Graphiti.graphiti_base_url + jscolor.getDir() + "metric.gif";
-      console.log("URLS");
-      console.log(folderUrl);
 
       var i = 0, l = folders.length;
       for (; i < l; i++) {
