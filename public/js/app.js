@@ -174,7 +174,7 @@ var app = Sammy('body', function() {
     removeFolderFromSearchKey: function() {
       var $search = $("#metrics-menu input.search");
       if ($search.val() !== "") {
-        $search.val($search.val().replace(/\.?\w*$/, ""));
+        $search.val($search.val().replace(/\.?[^\.]*$/, ""));
       } else {
         $search.val("");
       }
