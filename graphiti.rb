@@ -96,6 +96,10 @@ class Graphiti < Sinatra::Base
     json :uuid => uuid
   end
 
+  post '/update_order' do
+    Dashboard.reorder_graphs(params[:score_hash])
+  end
+
   post '/dashboards' do
     dashboard = Dashboard.save(params[:dashboard])
     json :dashboard => dashboard

@@ -301,6 +301,7 @@ var app = Sammy('body', function() {
               .data("graph", graph.json)
               .appendTo($graphs).each(function() {
                 ctx.drawGraph(graph.json, $(this).find('img'));
+                $(this).attr('id', graph.uuid);
                 // add a last class alternatingly to fix the display grid
                 if ((i+1)%2 == 0) {
                   $(this).addClass('last');
@@ -457,6 +458,18 @@ var app = Sammy('body', function() {
         ctx.redrawGraphs();
         ctx.graphPreview(ctx.getEditorJSON());
       });
+    },
+
+    bindEnvSelector: function() {
+      $('#env-selector')
+        .delegate('button', 'click', function(e) {
+          var $button = $(this);
+          $button.siblings("button").removeClass("selected");
+          $button.addClass("selected");
+          console.log("SWITCH ENV");
+          window.location.href = $button.val();
+          return false;
+        });
     },
     
     getOptionOverrides: function() {
@@ -632,6 +645,7 @@ var app = Sammy('body', function() {
     this.bindEditorPanes();
     this.bindMetricsList();
     this.bindTimeSelector();
+    this.bindEnvSelector();
 
     var disableSave = function() {
       if ($(this).val().toString() == '') {
@@ -652,6 +666,20 @@ var app = Sammy('body', function() {
     $('#graph-actions').delegate('.redraw', 'click', function(e) {
       e.preventDefault();
       ctx.redrawPreview();
+    });
+
+    $('#graphs-pane').sortable({
+      opacity: 0.7,
+      scroll: true,
+      stop: function(event, ui) {
+        var currentOrder = $(this).sortable('toArray').slice(1);
+        var id_score_hash = {};
+        var i = 0, l = currentOrder.length;
+        for (; i < l; i++) {
+          id_score_hash[currentOrder[i]] = l - i;
+        }
+        $.post('/update_order', {score_hash: id_score_hash});
+      }
     });
   });
 

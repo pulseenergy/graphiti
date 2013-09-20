@@ -55,6 +55,12 @@ class Dashboard
     redis.srem "graphs:#{uuid}:dashboards", slug
   end
 
+  def self.reorder_graphs(score_hash)
+    score_hash.keys.each do |key|
+      redis.zadd "graphs", score_hash[key], key
+    end
+  end
+
   def self.graph_ids(slug)
     redis.zrange "dashboards:#{slug}:graphs", 0, -1
   end
