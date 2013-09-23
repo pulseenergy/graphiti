@@ -27785,19 +27785,32 @@ var app = Sammy('body', function() {
       var opts = options.options ? options.options : options,
           key, $form = $('#graph-options form');
       for (key in opts) {
-        if (opts[key] != '') {
-          var formInput = $form.find('[name="options[' + key + ']"]');
-          if (formInput.is(':checkbox')) {
+        var formInput = $form.find('[name="options[' + key + ']"]');
+        if (formInput.is(':checkbox')) {
+          if (opts[key] != '') {
             formInput.prop('checked', opts[key]);
           } else {
-            formInput.val(opts[key]);
+            formInput.prop('checked', false);
           }
+        } else {
+          formInput.val(opts[key]);
         }
       }
     },
     saveOptions: function(params) {
       var json = this.getEditorJSON();
-      json.options = params;
+      if (!json.options) {
+        json.options = params;
+      } else {
+        // merge params so custom options are not overwritten
+        $.extend(json.options, params || {});
+        // set unchecked checkbox options to empty string
+        $('#graph-options form input:checkbox:not(:checked)').each(
+          function (index, el) {
+            json.options[el.name.substring(
+              "options[".length, el.name.length - 1)] = '';
+          });
+      }
       this.graphPreview(json);
       this.setEditorJSON(json);
     },
