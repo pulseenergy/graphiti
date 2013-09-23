@@ -133,6 +133,17 @@ var app = Sammy('body', function() {
               "options[".length, el.name.length - 1)] = '';
           });
       }
+      // bold and italic options require integer input
+      $('#graph-options form input:checkbox#check_fontBold:checked').each(
+        function (index, el) {
+          json.options[el.name.substring(
+            "options[".length, el.name.length - 1)] = 1;
+        });
+      $('#graph-options form input:checkbox#check_fontItalic:checked').each(
+        function (index, el) {
+          json.options[el.name.substring(
+            "options[".length, el.name.length - 1)] = 1;
+        });
       this.graphPreview(json);
       this.setEditorJSON(json);
     },
