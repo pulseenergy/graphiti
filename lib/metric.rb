@@ -10,18 +10,20 @@ class Metric
     redis.del "metrics"
     puts "Caching #{metrics.length} metrics into redis"
 
-    redis.pipelined do
-      metrics.each do |metric|
-        prefix = ""
-        keywords = metric.split(".")
-        for i in 0..keywords.size()-2
-          redis.sadd("metrics:folder:#{prefix}",keywords[i])
-          if prefix != ""
-            prefix << "."
+    metrics.each_slice(100) do |batch|
+      redis.pipelined do
+        batch.each do |metric|
+          prefix = ""
+          keywords = metric.split(".")
+          for i in 0..keywords.size()-2
+            redis.sadd("metrics:folder:#{prefix}",keywords[i])
+            if prefix != ""
+              prefix << "."
+            end
+            prefix << keywords[i]
           end
-          prefix << keywords[i]
+          redis.sadd("metrics:key:#{prefix}", keywords[-1])
         end
-        redis.sadd("metrics:key:#{prefix}", keywords[-1])
       end
     end
     
