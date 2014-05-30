@@ -27676,7 +27676,9 @@ Graphiti.Graph.prototype = {
   }
 };
 
-var app = Sammy('body', function() {
+/*global $, key, ace, alert, confirm, Graphiti, jscolor, Sammy */
+
+var app = new Sammy('body', function() {
   this.use('Session');
   this.use('NestedParams');
 
@@ -27712,7 +27714,9 @@ var app = Sammy('body', function() {
       return $pane.show();
     },
     setupEditor: function() {
-      if (this.app.editor) return;
+      if (this.app.editor) {
+        return;
+      }
 
       var ctx = this;
       var editor = this.app.editor = ace.edit("editor");
@@ -27735,10 +27739,10 @@ var app = Sammy('body', function() {
     showEditor: function(text, uuid) {
       this.showPane('editor');
       if (!text) {
-        text = defaultGraph;
+        text = Graphiti.defaultGraph;
       }
       this.setupEditor();
-      var text = this.setEditorJSON(text);
+      text = this.setEditorJSON(text);
       $('#editor').show();
       this.graphPreview(JSON.parse(text));
       this.buildDashboardsDropdown(uuid);
@@ -27759,7 +27763,7 @@ var app = Sammy('body', function() {
       return JSON.parse(this.app.editor.getSession().getValue());
     },
     setEditorJSON: function(text) {
-      if (typeof text != 'string') {
+      if (typeof text !== 'string') {
         text = JSON.stringify(text, null, 2);
       }
       this.app.editor.getSession().setValue(text);
@@ -27787,7 +27791,7 @@ var app = Sammy('body', function() {
       for (key in opts) {
         var formInput = $form.find('[name="options[' + key + ']"]');
         if (formInput.is(':checkbox')) {
-          if (opts[key] != '') {
+          if (opts[key] !== '') {
             formInput.prop('checked', opts[key]);
           } else {
             formInput.prop('checked', false);
@@ -27840,19 +27844,19 @@ var app = Sammy('body', function() {
       var metricUrl = Graphiti.graphiti_base_url + jscolor.getDir() + "metric.gif";
 
       var i = 0, l = folders.length;
+      var boldFn = function() {
+        $(this).css('font-weight', 'bold');
+      };
+      var normalFn = function() {
+        $(this).css('font-weight', 'normal');
+      };
       for (; i < l; i++) {
         Sammy.log(folders[i]);
         $("<li>")
           .addClass("folder")
           .text(folders[i])
           .prepend('<img src=' + folderUrl + '>')
-          .hover(
-            function() {
-              $(this).css('font-weight', 'bold');
-            }, function() {
-              $(this).css('font-weight', 'normal');
-            }
-          )
+          .hover(boldFn, normalFn)
           .appendTo($search_results);
       }
       i = 0, l = metrics.length;
@@ -27909,7 +27913,7 @@ var app = Sammy('body', function() {
         ctx.searchFolderAndKeyList($metrics_menu.val());
       });
 
-      if ($metrics_menu.val() == "") {
+      if ($metrics_menu.val() === "") {
         ctx.searchFolderAndKeyList("");
       }
     },
@@ -27919,7 +27923,7 @@ var app = Sammy('body', function() {
       var url = '/keywords.js';
       var localKeywordRequestPending = ++ctx.keywordRequestPending;
       this.load(url, {cache: false, data: {q: search}}).then(function(results) {
-        if (localKeywordRequestPending == ctx.keywordRequestPending) {
+        if (localKeywordRequestPending === ctx.keywordRequestPending) {
           var folders = results["folders"];
           var metrics = results["metrics"];
           ctx.buildMetricsList(folders, metrics);
@@ -27933,7 +27937,7 @@ var app = Sammy('body', function() {
       this.setEditorJSON(json);
     },
     timestamp: function(time) {
-      if (typeof time == 'string') {
+      if (typeof time === 'string') {
         time = parseInt(time, 10);
       }
       return new Date(time * 1000).toString();
@@ -27988,7 +27992,7 @@ var app = Sammy('body', function() {
                 l = graphs.length,
                 $graph = $('#templates .graph').clone(),
                 graph;
-            if (data.graphs.length == 0) {
+            if (data.graphs.length === 0) {
               $graphs.append($('#graphs-empty'));
               return true;
             }
@@ -28005,7 +28009,7 @@ var app = Sammy('body', function() {
                 ctx.drawGraph(graph.json, $(this).find('img'));
                 $(this).attr('id', graph.uuid);
                 // add a last class alternatingly to fix the display grid
-                if ((i+1)%2 == 0) {
+                if ((i+1)%2 === 0) {
                   $(this).addClass('last');
                 }
                 // if its all graphs, delete operates on everything
@@ -28029,7 +28033,7 @@ var app = Sammy('body', function() {
     drawGraph: function(graph_json, $img_location) {
       var graph_data = JSON.parse(graph_json);
       $.extend(true, graph_data, this.getOptionOverrides());
-      graph_obj = new Graphiti.Graph(graph_data);
+      var graph_obj = new Graphiti.Graph(graph_data);
       // actually replace the graph image
       graph_obj.image($img_location);
     },
@@ -28054,12 +28058,12 @@ var app = Sammy('body', function() {
             i = 0, l = dashboards.length, dashboard, alt,
             $dashboard = $('#templates .dashboard').clone();
 
-            if (dashboards.length == 0) {
+            if (dashboards.length === 0) {
               $dashboards.append($('#dashboards-empty'));
             } else {
               for (; i < l;i++) {
                 dashboard = dashboards[i];
-                alt = ((i+1)%2 == 0) ? 'alt' : '';
+                alt = ((i+1)%2 === 0) ? 'alt' : '';
                 $dashboard.clone()
                   .find('a.view').attr('href', '/dashboards/' + dashboard.slug).end()
                   .find('.title').text(dashboard.title).end()
@@ -28108,7 +28112,7 @@ var app = Sammy('body', function() {
       $('#editor-pane')
       .delegate('.edit-group .edit-head', 'click', function(e) {
         e.preventDefault();
-        var $group = $(this).add($(this).siblings('.edit-body'))
+        var $group = $(this).add($(this).siblings('.edit-body'));
         var group_name = $group.parents('.edit-group').attr('data-group');
         if ($group.is('.closed')) {
           $group.removeClass('closed').addClass('open');
@@ -28350,7 +28354,7 @@ var app = Sammy('body', function() {
     this.bindEnvSelector();
 
     var disableSave = function() {
-      if ($(this).val().toString() == '') {
+      if ($(this).val().toString() === '') {
         $(this).siblings('.save').attr('disabled', 'disabled');
       } else {
         $(this).siblings('.save').removeAttr('disabled');
