@@ -65,7 +65,7 @@ body.bp {
 #time-selector {
   float: left;
 }
-#time-selector button {
+.selector button {
   @include border-radius(4px);
   color: #666;
   background: #e5e5e5;
@@ -75,7 +75,7 @@ body.bp {
   font-size: 10px;
   font-weight: bold;
 }
-#time-selector button.selected {
+.selector button.selected {
   color: #f3f3f3;
   background: #694800;
 }
