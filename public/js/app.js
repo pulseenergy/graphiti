@@ -82,6 +82,9 @@ var app = new Sammy('body', function() {
       this.toggleEditorPanesByPreference();
     },
     getEditorJSON: function() {
+      if (!this.app.editor) {
+        return {};
+      }
       return JSON.parse(this.app.editor.getSession().getValue());
     },
     setEditorJSON: function(text) {
@@ -476,10 +479,9 @@ var app = new Sammy('body', function() {
       this.$button.val(this.original_button_val).removeAttr('disabled');
     },
     
-    bindTimeSelector: function() {
+    bindSelectors: function() {
       var ctx = this;
-      $('#time-selector')
-      .delegate('button', 'click', function(e) {
+      $('.selector').delegate('button', 'click', function(e) {
         var $button = $(this);
         $button.siblings("button").removeClass("selected");
         $button.addClass("selected");
@@ -487,25 +489,20 @@ var app = new Sammy('body', function() {
         ctx.graphPreview(ctx.getEditorJSON());
       });
     },
-
-    bindEnvSelector: function() {
-      $('#env-selector')
-        .delegate('button', 'click', function(e) {
-          var $button = $(this);
-          $button.siblings("button").removeClass("selected");
-          $button.addClass("selected");
-          console.log("SWITCH ENV");
-          window.location.href = $button.val();
-          return false;
-        });
-    },
     
     getOptionOverrides: function() {
+      var overrides = {options: {}, metaOptions: {}};
       var fromTime = $('#time-selector button.selected').val();
       if (fromTime) {
-        return {"options": {"from": fromTime, "until": ""}};
+        overrides.options.from = fromTime;
+        overrides.options.until = "";
       }
-      return {};
+      var environment = $('#environment-selector button.selected').val();
+      if (environment) {
+        overrides.metaOptions.prefix = environment.split('|')[0];
+        overrides.metaOptions.graphite_base_url = environment.split('|')[1];
+      }
+      return overrides;
     }
   });
 
@@ -672,8 +669,7 @@ var app = new Sammy('body', function() {
 
     this.bindEditorPanes();
     this.bindMetricsList();
-    this.bindTimeSelector();
-    this.bindEnvSelector();
+    this.bindSelectors();
 
     var disableSave = function() {
       if ($(this).val().toString() === '') {

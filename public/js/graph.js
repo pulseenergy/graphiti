@@ -1,3 +1,6 @@
+/*global $, Graphiti, window */
+
+
 /*
 Instantiating a new Graph:
 
@@ -26,10 +29,11 @@ Graphiti = window.Graphiti || {};
 
 Graphiti.Graph = function(targetsAndOptions){
   this.options = {};
+  this.metaOptions = {};
   this.targets = [];
   this.parsedTargets = [];
 
-  var defaults = {
+  var defaultOptions = {
     width:    950,
     height:   400,
     from:     '-6hour',
@@ -37,19 +41,20 @@ Graphiti.Graph = function(targetsAndOptions){
     title:    "",
     targets:  []
   };
+  var defaultMetaOptions = {
+    graphite_base_url: Graphiti.graphite_base_url,
+    prefix: ""
+  };
 
-  if (targetsAndOptions.options){
-    $.extend(true, this.options, defaults, targetsAndOptions.options);
-  } else {
-    $.extend(true, this.options, defaults);
-  }
+  $.extend(true, this.options, defaultOptions, targetsAndOptions.options || {});
+  $.extend(true, this.metaOptions, defaultMetaOptions, targetsAndOptions.metaOptions || {});
 
   if (targetsAndOptions.targets){
     var i = 0, l = targetsAndOptions.targets.length;
     for (; i < l; i++) {
       this.addTarget(targetsAndOptions.targets[i]);
     }
-  };
+  }
 
   if(!targetsAndOptions.options && !targetsAndOptions.targets){
     if(targetsAndOptions.charCodeAt){
@@ -58,14 +63,16 @@ Graphiti.Graph = function(targetsAndOptions){
       if(targetsAndOptions instanceof Array){
         this.addTarget(targetsAndOptions);
       } else {
-        $.extend(this.options, defaults, targetsAndOptions);
-      };
+        $.extend(this.options, defaultOptions, targetsAndOptions);
+      }
     }
-  };
-}
+  }
+};
 
 Graphiti.Graph.prototype = {
-  urlBase: (function() { return Graphiti.graphite_base_url + "/render/?"; })(),
+  urlBase: function() {
+    return this.metaOptions.graphite_base_url + "/render/?";
+  },
 
   updateOptions: function(options) {
     $.extend(true, this.options, options || {});
@@ -73,39 +80,38 @@ Graphiti.Graph.prototype = {
 
   addTarget: function(targets){
     var json = "", target, options;
-    if (typeof targets == 'string'){
+    if (typeof targets === 'string'){
       target = targets;
     } else {
       target = targets[0];
       options = targets[1];
 
-      for (option in options){
+      for (var option in options){
         var key = option;
         var value = options[option];
-        if (key == 'mostDeviant'){
+        if (key === 'mostDeviant'){
           json = JSON.stringify(value);
           target = [key,"(",json,",",target,")"].join("");
         } else {
           if (value !== true){
             json = JSON.stringify(value);
-            target = "" + key
-              + "(" +
-                target + "," +
-                (json[0] === '[' && json.substr(1, json.length - 2) || json)
-              + ")";
+            target = "" + key + "(" + target + "," +
+                (json[0] === '[' && json.substr(1, json.length - 2) || json) + ")";
           } else {
             target = [key,"(",target,")"].join("");
-          };
-        };
-      };
-    };
+          }
+        }
+      }
+    }
     this.targets.push(targets);
+    // Replace $PREFIX with prefix. Also replace something.*.something with something.$PREFIX*.something 
+    target = target.replace(/\$PREFIX/g, this.metaOptions.prefix).replace(/^([^.]*\.)(\*\..*)$/, "$1" + this.metaOptions.prefix + "$2");
     this.parsedTargets.push(target);
     return this;
   },
 
   buildURL: function(){
-    var url = this.urlBase;
+    var url = this.urlBase();
     var parts = [];
     $.each(this.options, function(key,value){
       parts.push(key + "=" + encodeURIComponent(value));
@@ -128,7 +134,7 @@ Graphiti.Graph.prototype = {
   },
 
   toJSON: function() {
-    return JSON.stringify({options: this.options, targets: this.targets}, null, 2)
+    return JSON.stringify({options: this.options, targets: this.targets}, null, 2);
   },
 
   save: function(uuid, callback) {

@@ -40,7 +40,7 @@
       - if Graphiti.settings.respond_to?("graphite_environments")
         #environment-selector.selector
           - Graphiti.settings.graphite_environments.each do |environment|
-            %button{class: "#{environment == Graphiti.settings.graphite_environments[0] ? 'selected' : '' }", value: "#{environment['prefix']}" } #{environment['title']}
+            %button{class: "#{environment == Graphiti.settings.graphite_environments[0] ? 'selected' : '' }", value: "#{environment['prefix']}|#{environment['base_url']}" } #{environment['title']}
       %label{for: 'auto-refresh'}
         %input#auto-refresh{:name => 'auto-refresh', :type => 'checkbox', :checked => Graphiti.settings.auto_refresh['enabled'], 'data-interval' => Graphiti.settings.auto_refresh['interval']}
           Refresh every #{Graphiti.settings.auto_refresh['interval']} seconds
