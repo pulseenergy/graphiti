@@ -2,7 +2,8 @@
 source 'https://rubygems.org'
 
 gem 'rake'
-gem 'rack', '1.3.5'
+gem 'rack'
+gem 'eventmachine', "1.0.3"
 gem 'sinatra'
 gem 'sinatra-contrib'
 gem 'jim'
@@ -24,7 +25,7 @@ end
 
 group :development do
   gem 'sinatra-reloader', :require => 'sinatra/reloader'
-  gem 'thin'
+  gem 'thin', '1.6.2'
   gem 'ruby-debug19'
 end
 
