@@ -182,17 +182,6 @@
                 %p
                   %input.save{type: 'submit', value: 'Update'}
         .clear
-      .edit-group{'data-group' => 'metrics'}
-        .edit-head.closed
-          %a Metrics
-        .edit-body.closed
-          #metrics-menu
-            %input.search{type: 'search', name: 'metrics-filter'}
-
-          #metrics-list
-            %ul.search-results
-
-        .clear
       .edit-group{'data-group' => 'editor'}
         .edit-head.open
           %a Editor

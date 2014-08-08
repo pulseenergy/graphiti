@@ -22,12 +22,6 @@ task :default => :test
 
 namespace :graphiti do
 
-  desc 'Rebuild Metrics List'
-  task :metrics do
-    list = Metric.refresh
-    puts "Got #{list.length} metrics"
-  end
-
   desc 'Send email reports per dashboard. Needs `reports` settings in settings.yml'
   task :send_reports do
     Dashboard.send_reports

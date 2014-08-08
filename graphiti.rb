@@ -18,7 +18,6 @@ require 'digest/sha1'
 require './lib/s3/request'
 require './lib/s3/signature'
 
-require './lib/metric'
 require './lib/graph'
 require './lib/dashboard'
 
@@ -42,7 +41,6 @@ class Graphiti < Sinatra::Base
     set :method_override, true
     Graph.redis = settings.redis_url
     Dashboard.redis = settings.redis_url
-    Metric.redis = settings.redis_url
   end
 
   before do
@@ -57,12 +55,6 @@ class Graphiti < Sinatra::Base
 
   get '/graphs/:uuid.js' do
     json Graph.find(params[:uuid])
-  end
-
-  get '/keywords.js' do
-    json ({ :folders => Metric.find_folders(params[:q].to_s),
-            :metrics => Metric.find_metrics(params[:q].to_s)
-          })
   end
 
   get '/graphs.js' do

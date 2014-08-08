@@ -4,7 +4,7 @@ Graphiti is an alternate JavaScript and Ruby front-end and graph storage applica
 
 ![Graphiti](http://quirkey.com/skitch/http__aq.iriscouch.com_swinger_aq-mdd_graphiti1.jpg-20111211-135528.jpg)
 
-## What 
+## What
 
 Graphiti allows you to easily access and manipulate the data you've collected in graphite in a couple of key ways. The focus is on ease of access, ease of recovery and ease of tweaking/manipulation:
 
@@ -23,7 +23,7 @@ We started talking to some smart people that were using Graphite in their own wa
 
 * Graphite - http://graphite.wikidot.com/ (Don't be scared by the word ENTERPRISE.)
 * Graphite documentation: http://readthedocs.org/docs/graphite/en/1.0/index.html See especially: http://readthedocs.org/docs/graphite/en/1.0/functions.html
-* @codahale's Metrics Talk: http://pivotallabs.com/talks/139-metrics-metrics-everywhere 
+* @codahale's Metrics Talk: http://pivotallabs.com/talks/139-metrics-metrics-everywhere
 * @quirkey's talk about metrics @paperlesspost: http://aq.iriscouch.com/swinger/_design/swinger/index.html#/preso/aq-mdd/display/1
 * Etsy on Statsd + Graphite: http://codeascraft.etsy.com/2011/02/15/measure-anything-measure-everything/
 * Our statsd fork: https://github.com/paperlesspost/statsd
@@ -48,7 +48,6 @@ Graphiti is a very simple ruby 1.9.2/Sinatra (http://sinatrarb.com) backend that
 * Make copies of the config/*.example files application configuration.
 * Bundle: `bundle install`
 * Run: `bundle exec unicorn -c config/unicorn.rb -E production -D`
-* Generate the metrics list: `bundle exec rake graphiti:metrics` (In order to make searching through your list of metrics fast, Graphiti fetches and caches the full list in Redis. We put this in a rake task that you can run in the background and set up on a cron.)
 * A Capfile and `config/deploy.rb` is provided for reference (though it might work for you).
 
 ### The JSON Graph data format
@@ -97,7 +96,7 @@ Functions are defined as a hash of function names and arguments:
         "keepLastValue": true, // functions that take no arguments, just need a `true` value
         "movingAverage": 10, // functions that take a single argument, can just be assigned that value
         "substr": [6,7] // functions that take multiple arguments can be passed as an array of args
-      } 
+      }
     ]
   ]
 }
@@ -105,7 +104,7 @@ Functions are defined as a hash of function names and arguments:
 
 ## Credits
 
-Mad peace and shout outs to @tmm1 and the Github crew for very helpful advice and code. 
+Mad peace and shout outs to @tmm1 and the Github crew for very helpful advice and code.
 
 ## Contributing to Graphiti
 

@@ -154,113 +154,6 @@ var app = new Sammy('body', function() {
       this.graphPreview(json);
       this.setEditorJSON(json);
     },
-    buildMetricsList: function(folders, metrics) {
-      var $search_results = $("#metrics-list ul.search-results");
-      $search_results.html("");
-
-      if ($("#metrics-menu input.search").val() !== "") {
-        $("<li>")
-          .addClass("root")
-          .text("..")
-          .appendTo($search_results);
-      }
-
-      var folderUrl = Graphiti.graphiti_base_url + jscolor.getDir() + "folder.png";
-      var metricUrl = Graphiti.graphiti_base_url + jscolor.getDir() + "metric.gif";
-
-      var i = 0, l = folders.length;
-      var boldFn = function() {
-        $(this).css('font-weight', 'bold');
-      };
-      var normalFn = function() {
-        $(this).css('font-weight', 'normal');
-      };
-      for (; i < l; i++) {
-        Sammy.log(folders[i]);
-        $("<li>")
-          .addClass("folder")
-          .text(folders[i])
-          .prepend('<img src=' + folderUrl + '>')
-          .hover(boldFn, normalFn)
-          .appendTo($search_results);
-      }
-      i = 0, l = metrics.length;
-      for (; i < l; i++) {
-        Sammy.log(metrics[i]);
-        $("<li>")
-          .addClass("key")
-          .append($("<a rel='add'>Add</a>"))
-          .append($("<strong>").text(metrics[i]))
-          .prepend('<img src=' + metricUrl + '>')
-          .appendTo($search_results);
-      }
-    },
-    appendFolderToSearchKey: function(folder_name) {
-      var $search = $("#metrics-menu input.search");
-      if ($search.val() !== "") {
-        $search.val($search.val() + ".");
-      }
-      $search.val($search.val() + folder_name);
-    },
-    removeFolderFromSearchKey: function() {
-      var $search = $("#metrics-menu input.search");
-      if ($search.val() !== "") {
-        $search.val($search.val().replace(/\.?[^\.]*$/, ""));
-      } else {
-        $search.val("");
-      }
-    },
-    bindMetricsList: function() {
-      var ctx = this;
-      var $results_list = $('#metrics-list ul.search-results');
-      var $metrics_menu = $("#metrics-menu input.search");
-
-      $results_list.delegate('li.root', 'click', function(e) {
-        e.preventDefault();
-        ctx.removeFolderFromSearchKey();
-        ctx.searchFolderAndKeyList($metrics_menu.val());
-      }).addClass('.bound');
-      $results_list.delegate('li.folder', 'click', function(e) {
-        e.preventDefault();
-        ctx.appendFolderToSearchKey($(this).text());
-        ctx.searchFolderAndKeyList($metrics_menu.val());
-      }).addClass('.bound');
-      $results_list.delegate('li.key', 'click', function(e) {
-        e.preventDefault();
-        var search_prefix = $metrics_menu.val();
-        var action = $(this).find("a").attr('rel'),
-            metric = search_prefix + "." + $(this).find('strong').text();
-        Sammy.log('clicked', action, metric);
-        ctx[action + "GraphMetric"](metric);
-      }).addClass('.bound');
-
-      $metrics_menu.change(function () {
-        ctx.searchFolderAndKeyList($metrics_menu.val());
-      });
-
-      if ($metrics_menu.val() === "") {
-        ctx.searchFolderAndKeyList("");
-      }
-    },
-    keywordRequestPending: 0,
-    searchFolderAndKeyList: function(search) {
-      var ctx = this;
-      var url = '/keywords.js';
-      var localKeywordRequestPending = ++ctx.keywordRequestPending;
-      this.load(url, {cache: false, data: {q: search}}).then(function(results) {
-        if (localKeywordRequestPending === ctx.keywordRequestPending) {
-          var folders = results["folders"];
-          var metrics = results["metrics"];
-          ctx.buildMetricsList(folders, metrics);
-        }
-      });
-    },
-    addGraphMetric: function(metric) {
-      var json = this.getEditorJSON();
-      json.targets.push([metric, {}]);
-      this.graphPreview(json);
-      this.setEditorJSON(json);
-    },
     timestamp: function(time) {
       if (typeof time === 'string') {
         time = parseInt(time, 10);
@@ -478,7 +371,7 @@ var app = new Sammy('body', function() {
     hideSaving: function() {
       this.$button.val(this.original_button_val).removeAttr('disabled');
     },
-    
+
     bindSelectors: function() {
       var ctx = this;
       $('.selector').delegate('button', 'click', function(e) {
@@ -489,7 +382,7 @@ var app = new Sammy('body', function() {
         ctx.graphPreview(ctx.getEditorJSON());
       });
     },
-    
+
     getOptionOverrides: function() {
       var overrides = {options: {}, metaOptions: {}};
       var fromTime = $('#time-selector button.selected').val();
@@ -668,7 +561,6 @@ var app = new Sammy('body', function() {
     var ctx = this;
 
     this.bindEditorPanes();
-    this.bindMetricsList();
     this.bindSelectors();
 
     var disableSave = function() {

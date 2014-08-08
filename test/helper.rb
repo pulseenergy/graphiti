@@ -53,4 +53,3 @@ puts "Starting redis for testing at localhost:9736..."
 `redis-server #{dir}/redis-test.conf`
 Graph.redis = 'localhost:9736:2'
 Dashboard.redis = 'localhost:9736:2'
-Metric.redis = 'localhost:9736:2'
