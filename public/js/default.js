@@ -27963,6 +27963,7 @@ var app = new Sammy('body', function() {
             if (dashboards.length === 0) {
               $dashboards.append($('#dashboards-empty'));
             } else {
+              dashboards = dashboards.sort(function (a,b) { return a.title.localeCompare(b.title); });
               for (; i < l;i++) {
                 dashboard = dashboards[i];
                 alt = ((i+1)%2 === 0) ? 'alt' : '';
