@@ -379,6 +379,7 @@ var app = new Sammy('body', function() {
         var $button = $(this);
         $button.siblings("button").removeClass("selected");
         $button.addClass("selected");
+        ctx.synchSelectorState(true);
         ctx.redrawGraphs();
         ctx.graphPreview(ctx.getEditorJSON());
       });
@@ -397,11 +398,31 @@ var app = new Sammy('body', function() {
         overrides.metaOptions.graphite_base_url = environment.split('|')[1];
       }
       return overrides;
+    },
+
+    synchSelectorState: function(forceUpdate) {
+      var ctx = this;
+      var queryString = "?";
+      $('.selector').each(function(index, el) {
+        if (!forceUpdate && ctx.params[el.id]) {
+          $(el).find('button').removeClass("selected");
+          $(el).find('button[name="' + ctx.params[el.id] + '"]').addClass("selected");
+          queryString += el.id + "=" + ctx.params[el.id] + "&";
+        } else {
+          var currentSelected = $(el).find('button.selected')
+          if (currentSelected) {
+            ctx.params[el.id] = currentSelected[0].name;
+            queryString += el.id + "=" + ctx.params[el.id] + "&";
+          }
+        }
+      });
+      ctx.redirect("#" + queryString);
     }
   });
 
   this.before({only: {verb: 'get'}}, function() {
     this.showPane('loading');
+    this.synchSelectorState();
   });
 
   this.get('/graphs/new', function(ctx) {

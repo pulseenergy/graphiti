@@ -29,18 +29,18 @@
     #view-controls
       #time-selector.selector
         %button{class: 'selected', value:""} default
-        %button{value:"-6h"} 6 h
-        %button{value:"-1d"} 1 d
-        %button{value:"-2d"} 2 d
-        %button{value:"-1week"} 1 w
-        %button{value:"-2week"} 2 w
-        %button{value:"-1month"} 1 m
-        %button{value:"-3months"} 3 m
-        %button{value:"-1year"} 1 y
+        %button{name:"6h", value:"-6h"} 6 h
+        %button{name:"1d", value:"-1d"} 1 d
+        %button{name:"2d", value:"-2d"} 2 d
+        %button{name:"1w", value:"-1week"} 1 w
+        %button{name:"2w", value:"-2week"} 2 w
+        %button{name:"1m", value:"-1month"} 1 m
+        %button{name:"3m", value:"-3months"} 3 m
+        %button{name:"1y", value:"-1year"} 1 y
       - if Graphiti.settings.respond_to?("graphite_environments")
         #environment-selector.selector
           - Graphiti.settings.graphite_environments.each do |environment|
-            %button{class: "#{environment == Graphiti.settings.graphite_environments[0] ? 'selected' : '' }", value: "#{environment['prefix']}|#{environment['base_url']}" } #{environment['title']}
+            %button{class: "#{environment == Graphiti.settings.graphite_environments[0] ? 'selected' : '' }", name: "#{environment['title']}", value: "#{environment['prefix']}|#{environment['base_url']}" } #{environment['title']}
       %label{for: 'auto-refresh'}
         %input#auto-refresh{:name => 'auto-refresh', :type => 'checkbox', :checked => Graphiti.settings.auto_refresh['enabled'], 'data-interval' => Graphiti.settings.auto_refresh['interval']}
           Refresh every #{Graphiti.settings.auto_refresh['interval']} seconds
