@@ -205,12 +205,12 @@ var app = new Sammy('body', function() {
               all_graphs = true;
             }
             $graphs.append('<h2>' + title + '</h2>');
-            var graphs = data.graphs,
+            var graphs = data.graphs || [],
                 i = 0,
                 l = graphs.length,
                 $graph = $('#templates .graph').clone(),
                 graph;
-            if (data.graphs.length === 0) {
+            if (graphs.length === 0) {
               $graphs.append($('#graphs-empty'));
               return true;
             }
