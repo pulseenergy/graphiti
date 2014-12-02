@@ -27,7 +27,7 @@
             + New Graph
   #container
     #view-controls
-      #time-selector.selector
+      #time.selector
         %button{class: 'selected', value:""} default
         %button{name:"6h", value:"-6h"} 6 h
         %button{name:"1d", value:"-1d"} 1 d
@@ -38,7 +38,7 @@
         %button{name:"3m", value:"-3months"} 3 m
         %button{name:"1y", value:"-1year"} 1 y
       - if Graphiti.settings.respond_to?("graphite_environments")
-        #environment-selector.selector
+        #env.selector
           - Graphiti.settings.graphite_environments.each do |environment|
             %button{class: "#{environment == Graphiti.settings.graphite_environments[0] ? 'selected' : '' }", name: "#{environment['title']}", value: "#{environment['prefix']}|#{environment['base_url']}" } #{environment['title']}
       %label{for: 'auto-refresh'}

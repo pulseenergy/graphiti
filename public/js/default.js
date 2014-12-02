@@ -27900,7 +27900,9 @@ var app = new Sammy('body', function() {
             }
             for (; i < l; i++) {
               graph = graphs[i];
-
+              if (!graph.uuid || !graph.json) {
+                continue;
+              }
               $graph
               .clone()
               .find('.title').text(graph.title || 'Untitled').end()
@@ -27930,6 +27932,7 @@ var app = new Sammy('body', function() {
                 }
               });
             }
+            ctx.synchSelectorState();
           });
     },
     drawGraph: function(graph_json, $img_location) {
@@ -27978,7 +27981,7 @@ var app = new Sammy('body', function() {
                   .appendTo($dashboards);
               }
             }
-
+            ctx.synchSelectorState();
           });
     },
 
@@ -27999,6 +28002,7 @@ var app = new Sammy('body', function() {
               .show()
               .appendTo($snapshots);
             }
+            ctx.synchSelectorState();
           });
     },
 
@@ -28063,20 +28067,19 @@ var app = new Sammy('body', function() {
         var $button = $(this);
         $button.siblings("button").removeClass("selected");
         $button.addClass("selected");
-        ctx.synchSelectorState(true);
-        ctx.redrawGraphs();
-        ctx.graphPreview(ctx.getEditorJSON());
+        var queryString = ctx.synchSelectorState(true);
+        ctx.redirect(window.location.pathname + queryString);
       });
     },
 
     getOptionOverrides: function() {
       var overrides = {options: {}, metaOptions: {}};
-      var fromTime = $('#time-selector button.selected').val();
+      var fromTime = $('#time.selector button.selected').val();
       if (fromTime) {
         overrides.options.from = fromTime;
         overrides.options.until = "";
       }
-      var environment = $('#environment-selector button.selected').val();
+      var environment = $('#env.selector button.selected').val();
       if (environment) {
         overrides.metaOptions.prefix = environment.split('|')[0];
         overrides.metaOptions.graphite_base_url = environment.split('|')[1];
@@ -28100,7 +28103,21 @@ var app = new Sammy('body', function() {
           }
         }
       });
-      ctx.redirect("#" + queryString);
+      ctx.updateLinks(queryString);
+      return queryString;
+    },
+
+    updateLinks: function(queryString) {
+      $('a').each(function (index, a) {
+        var href = $(a).attr('href');
+        if (href) {
+          if (href.indexOf("?") > 0) {
+            href = href.substring(0, href.indexOf("?"))
+          }
+          href += queryString;
+          $(a).attr('href', href);
+        }
+      });
     }
   });
 
